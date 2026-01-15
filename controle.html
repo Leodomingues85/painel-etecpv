@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Chamada - ETEC</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; font-family: sans-serif; }
+        .card-controle { 
+            background: white; padding: 25px; border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 450px; margin: auto;
+        }
+        .titulo { color: #b11116; font-weight: bold; text-align: center; }
+        .contador-group { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .btn-ajuste { width: 50px; height: 54px; font-size: 24px; font-weight: bold; }
+        .input-senha { text-align: center; font-size: 24px; font-weight: bold; height: 54px !important; }
+        .btn-chamar { width: 100%; font-size: 1.2em; padding: 15px; font-weight: bold; border-radius: 8px; margin-bottom: 20px; }
+        .label-setor { font-weight: bold; display: block; text-align: center; margin-top: 10px; color: #333; }
+        #status { text-align: center; font-weight: bold; height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card-controle">
+            <h2 class="titulo">CONTROLE ETEC</h2>
+            <hr>
+
+            <label class="label-setor">SENHA NORMAL</label>
+            <div class="contador-group">
+                <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputNormal', -1)">-</button>
+                <input type="number" id="inputNormal" class="form-control input-senha" value="1">
+                <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputNormal', 1)">+</button>
+            </div>
+            <button onclick="enviarParaNuvem('normal')" id="btnNormal" class="btn btn-primary btn-chamar">CHAMAR NORMAL</button>
+
+            <label class="label-setor">SENHA PREFERENCIAL</label>
+            <div class="contador-group">
+                <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputPref', -1)">-</button>
+                <input type="number" id="inputPref" class="form-control input-senha" value="1">
+                <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputPref', 1)">+</button>
+            </div>
+            <button onclick="enviarParaNuvem('preferencial')" id="btnPref" class="btn btn-danger btn-chamar">CHAMAR PREFERENCIAL</button>
+
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <script>
+        // === MANTENHA O SEU LINK DO GOOGLE AQUI ===
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxRtJN-7ZEbUiiO1hDVkY39DrVyJAK8MbFey2OACjEqqPuByF_ariNZK74IWRIHyofd/exec";
+
+        // Função para aumentar ou diminuir o valor no campo
+        function alterarValor(idCampo, delta) {
+            const campo = document.getElementById(idCampo);
+            let valorAtual = parseInt(campo.value) || 0;
+            if (valorAtual + delta >= 0) {
+                campo.value = valorAtual + delta;
+            }
+        }
+
+        function enviarParaNuvem(tipo) {
+            const statusDiv = document.getElementById('status');
+            const campoNormal = document.getElementById('inputNormal');
+            const campoPref = document.getElementById('inputPref');
+            
+            let valorBase = (tipo === 'normal') ? campoNormal.value : campoPref.value;
+            
+            // Formatação (ex: 1 vira 0001 para Normal ou P001 para Preferencial)
+            let valorFormatado = valorBase.padStart(tipo === 'normal' ? 4 : 3, '0');
+            if (tipo === 'preferencial') valorFormatado = 'P' + valorFormatado;
+
+            statusDiv.style.color = "blue";
+            statusDiv.innerText = "Chamando " + valorFormatado + "...";
+
+            fetch(`${URL_GOOGLE_SCRIPT}?senha=${valorFormatado}&tipo=${tipo}`)
+                .then(response => {
+                    if (response.ok) {
+                        statusDiv.style.color = "green";
+                        statusDiv.innerText = "Senha " + valorFormatado + " na tela!";
+                        
+                        // Opcional: Aumenta automaticamente o número para a próxima chamada
+                        if(tipo === 'normal') alterarValor('inputNormal', 1);
+                        else alterarValor('inputPref', 1);
+                    }
+                })
+                .catch(err => {
+                    statusDiv.style.color = "red";
+                    statusDiv.innerText = "Erro de conexão!";
+                });
+        }
+    </script>
+</body>
+</html>
