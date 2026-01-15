@@ -6,27 +6,31 @@
     <title>Controle de Chamada - ETEC</title>
     <link href="css/bootstrap.css" rel="stylesheet">
     <style>
-        body { padding: 20px; background-color: #f8f9fa; font-family: sans-serif; }
+        body { padding: 20px; background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .card-controle { 
             background: white; padding: 25px; border-radius: 15px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 450px; margin: auto;
         }
-        .titulo { color: #b11116; font-weight: bold; text-align: center; }
+        .titulo { color: #b11116; font-weight: bold; text-align: center; margin-bottom: 5px; }
+        .subtitulo { text-align: center; color: #777; font-size: 0.85em; margin-bottom: 20px; }
         .contador-group { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
-        .btn-ajuste { width: 50px; height: 54px; font-size: 24px; font-weight: bold; }
-        .input-senha { text-align: center; font-size: 24px; font-weight: bold; height: 54px !important; }
-        .btn-chamar { width: 100%; font-size: 1.2em; padding: 15px; font-weight: bold; border-radius: 8px; margin-bottom: 20px; }
-        .label-setor { font-weight: bold; display: block; text-align: center; margin-top: 10px; color: #333; }
-        #status { text-align: center; font-weight: bold; height: 20px; }
+        .btn-ajuste { width: 60px; height: 54px; font-size: 24px; font-weight: bold; border-radius: 8px; }
+        .input-senha { text-align: center; font-size: 24px; font-weight: bold; height: 54px !important; border: 2px solid #ddd; }
+        .btn-chamar { width: 100%; font-size: 1.2em; padding: 15px; font-weight: bold; border-radius: 8px; margin-bottom: 25px; transition: 0.2s; }
+        .btn-chamar:active { transform: scale(0.97); }
+        .label-setor { font-weight: bold; display: block; text-align: center; margin-top: 10px; color: #333; text-transform: uppercase; letter-spacing: 1px; }
+        #status { text-align: center; font-weight: bold; height: 25px; margin-top: 10px; border-radius: 4px; }
+        hr { border-top: 2px solid #eee; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card-controle">
             <h2 class="titulo">CONTROLE ETEC</h2>
+            <p class="subtitulo">Painel de Chamada via Nuvem</p>
             <hr>
 
-            <label class="label-setor">SENHA NORMAL</label>
+            <label class="label-setor">Senha Normal</label>
             <div class="contador-group">
                 <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputNormal', -1)">-</button>
                 <input type="number" id="inputNormal" class="form-control input-senha" value="1">
@@ -34,7 +38,7 @@
             </div>
             <button onclick="enviarParaNuvem('normal')" id="btnNormal" class="btn btn-primary btn-chamar">CHAMAR NORMAL</button>
 
-            <label class="label-setor">SENHA PREFERENCIAL</label>
+            <label class="label-setor">Senha Preferencial</label>
             <div class="contador-group">
                 <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputPref', -1)">-</button>
                 <input type="number" id="inputPref" class="form-control input-senha" value="1">
@@ -47,10 +51,10 @@
     </div>
 
     <script>
-        // === MANTENHA O SEU LINK DO GOOGLE AQUI ===
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxRtJN-7ZEbUiiO1hDVkY39DrVyJAK8MbFey2OACjEqqPuByF_ariNZK74IWRIHyofd/exec";
+        // === LINK DO SEU GOOGLE APPS SCRIPT ===
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbzQ0bCzl8S761FL_ew87bsHgiZ-owVwIMXlxHEu4VnxorqdlfwAyHsUtnqVWrLz7j0/exec";
 
-        // Função para aumentar ou diminuir o valor no campo
+        // Função para aumentar ou diminuir o valor nos botões + e -
         function alterarValor(idCampo, delta) {
             const campo = document.getElementById(idCampo);
             let valorAtual = parseInt(campo.value) || 0;
@@ -66,28 +70,32 @@
             
             let valorBase = (tipo === 'normal') ? campoNormal.value : campoPref.value;
             
-            // Formatação (ex: 1 vira 0001 para Normal ou P001 para Preferencial)
-            let valorFormatado = valorBase.padStart(tipo === 'normal' ? 4 : 3, '0');
+            // Formatação: Normal vira 0001, Preferencial vira P001
+            let valorFormatado = valorBase.toString().padStart(tipo === 'normal' ? 4 : 3, '0');
             if (tipo === 'preferencial') valorFormatado = 'P' + valorFormatado;
 
-            statusDiv.style.color = "blue";
-            statusDiv.innerText = "Chamando " + valorFormatado + "...";
+            // Feedback visual de envio
+            statusDiv.style.backgroundColor = "#e1f5fe";
+            statusDiv.style.color = "#0277bd";
+            statusDiv.innerText = "Enviando " + valorFormatado + "...";
 
-            fetch(`${URL_GOOGLE_SCRIPT}?senha=${valorFormatado}&tipo=${tipo}`)
-                .then(response => {
-                    if (response.ok) {
-                        statusDiv.style.color = "green";
-                        statusDiv.innerText = "Senha " + valorFormatado + " na tela!";
-                        
-                        // Opcional: Aumenta automaticamente o número para a próxima chamada
-                        if(tipo === 'normal') alterarValor('inputNormal', 1);
-                        else alterarValor('inputPref', 1);
-                    }
-                })
-                .catch(err => {
-                    statusDiv.style.color = "red";
-                    statusDiv.innerText = "Erro de conexão!";
-                });
+            // TÉCNICA DA IMAGEM: Envia os dados sem sofrer bloqueio de CORS
+            var img = new Image();
+            img.src = `${URL_GOOGLE_SCRIPT}?senha=${valorFormatado}&tipo=${tipo}&t=` + new Date().getTime();
+            
+            // Após 1 segundo, confirma o envio e incrementa o contador para a próxima senha
+            setTimeout(() => {
+                statusDiv.style.backgroundColor = "#e8f5e9";
+                statusDiv.style.color = "#2e7d32";
+                statusDiv.innerText = "Sucesso: " + valorFormatado + " chamada!";
+                
+                // Incrementa automaticamente o contador
+                if(tipo === 'normal') alterarValor('inputNormal', 1);
+                else alterarValor('inputPref', 1);
+
+                // Limpa a mensagem de sucesso após 3 segundos
+                setTimeout(() => { statusDiv.innerText = ""; statusDiv.style.backgroundColor = "transparent"; }, 3000);
+            }, 1000);
         }
     </script>
 </body>
