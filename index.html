@@ -3,17 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAINEL DE SENHAS - ETEC PV</title>
+    <title>PAINEL DE SENHAS - ETEC PRESIDENTE VARGAS</title>
     
     <link href="css/bootstrap.css" rel="stylesheet">
     
     <style>
+        /* Estilos Gerais */
         body { 
             background-color: #f0f2f5; 
             color: #333; 
             font-family: 'Arial', sans-serif;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
+
+        /* Cabeçalho Superior */
         .header-painel {
             background-color: #ffffff;
             padding: 15px 30px;
@@ -22,51 +27,63 @@
         }
         .etec-logo { max-height: 80px; }
         .titulo-escola { font-size: 2.2em; font-weight: bold; color: #b11116; }
+        .subtitulo-escola { font-size: 1.4em; color: #555; }
         
         /* Containers das Senhas */
-        .area-senhas { margin-top: 40px; padding: 0 20px; }
+        .area-senhas { 
+            margin-top: 30px; 
+            padding: 0 20px; 
+        }
         
         .card-senha {
-            background: #fff;
-            border-radius: 25px;
+            border-radius: 40px;
             padding: 40px 20px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            min-height: 450px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            min-height: 500px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            border: 4px solid rgba(255,255,255,0.2);
         }
 
-        .card-normal { border-top: 15px solid #0056b3; }
-        .card-pref { border-top: 15px solid #d32f2f; }
+        /* Cores de Fundo Sólidas e Letras Brancas */
+        .card-normal { 
+            background-color: #0056b3; /* Azul Forte */
+            color: #ffffff; 
+        }
+        .card-pref { 
+            background-color: #d32f2f; /* Vermelho Forte */
+            color: #ffffff; 
+        }
 
         .label-setor {
-            font-size: 2.5em;
-            font-weight: 800;
+            font-size: 3.5em;
+            font-weight: 900;
             margin-bottom: 10px;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 4px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.4);
         }
 
         .senha-numero {
-            font-size: 11em;
+            font-size: 13em; /* Tamanho bem grande para visibilidade */
             font-weight: 900;
             line-height: 1;
-            margin: 20px 0;
+            margin: 10px 0;
+            text-shadow: 5px 5px 15px rgba(0,0,0,0.5);
         }
 
-        /* Cores de Contraste */
-        .txt-normal { color: #0056b3; }
-        .txt-pref { color: #d32f2f; }
-
+        /* Rodapé */
         .footer {
             position: absolute;
-            bottom: 15px;
+            bottom: 20px;
             width: 100%;
             text-align: center;
-            font-size: 1.1em;
-            color: #777;
+            font-size: 1.3em;
+            color: #444;
+            font-weight: bold;
+            text-transform: uppercase;
         }
     </style>
 
@@ -82,33 +99,27 @@
             </div>
             <div class="col-xs-10" style="text-align: right;">
                 <span class="titulo-escola">ETEC PRESIDENTE VARGAS</span><br>
-                <span style="font-size: 1.4em; color: #555;">MATRÍCULA SECRETARIA 2025</span>
+                <span class="subtitulo-escola">MATRÍCULA SECRETARIA 2025</span>
             </div>
         </div>
     </div>
 
     <div class="container-fluid area-senhas">
         <div class="row">
+            
             <div class="col-xs-6">
                 <div class="card-senha card-normal">
-                    <div class="label-setor txt-normal">NORMAL</div>
-                    <div id="senhaNormalNumero" class="senha-numero txt-normal">0000</div>
+                    <div class="label-setor">NORMAL</div>
+                    <div id="senhaNormalNumero" class="senha-numero">0000</div>
                 </div>
             </div>
 
             <div class="col-xs-6">
                 <div class="card-senha card-pref">
-                    <div class="label-setor txt-pref">PREFERENCIAL</div>
-                    <div id="senhaPrefNumero" class="senha-numero txt-pref">P000</div>
+                    <div class="label-setor">PREFERENCIAL</div>
+                    <div id="senhaPrefNumero" class="senha-numero">P000</div>
                 </div>
             </div>
+
         </div>
     </div>
-
-    <div class="footer">
-        Acompanhe sua senha no painel. Atendimento por ordem de chamada.
-    </div>
-
-    <audio id="audioChamada" src="audio/chamada.wav" preload="auto"></audio>
-</body>
-</html>
