@@ -3,60 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Chamada Sincronizado - ETEC</title>
+    <title>Controle ETEC - Chamada</title>
     <link href="css/bootstrap.css" rel="stylesheet">
     <style>
-        body { padding: 20px; background-color: #f4f7f6; font-family: sans-serif; }
+        body { padding: 20px; background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .card-controle { 
-            background: white; padding: 25px; border-radius: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 450px; margin: auto;
+            background: white; padding: 30px; border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 500px; margin: auto;
         }
-        .titulo { color: #b11116; font-weight: bold; text-align: center; margin-bottom: 20px; }
-        .contador-group { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
-        .btn-ajuste { width: 50px; height: 50px; font-size: 20px; font-weight: bold; }
-        .input-senha { text-align: center; font-size: 24px; font-weight: bold; width: 120px !important; }
-        .btn-chamar { width: 100%; margin-top: 10px; font-weight: bold; padding: 12px; font-size: 18px; }
-        #status { text-align: center; margin-top: 15px; padding: 10px; border-radius: 8px; min-height: 45px; }
-        .sinc-info { font-size: 0.8em; color: #888; text-align: center; margin-bottom: 15px; }
+        .titulo { color: #b11116; font-weight: bold; text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .contador-group { display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 15px; }
+        .btn-ajuste { width: 60px; height: 50px; font-size: 24px; font-weight: bold; border-radius: 10px; }
+        .input-senha { text-align: center; font-size: 30px; font-weight: bold; width: 140px !important; height: 50px; border: 2px solid #ddd; }
+        .btn-chamar { width: 100%; font-weight: 800; padding: 15px; font-size: 20px; border-radius: 50px; text-transform: uppercase; letter-spacing: 1px; transition: transform 0.1s; }
+        .btn-chamar:active { transform: scale(0.98); }
+        .section-controle { background: #fafafa; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #eee; }
+        #status { text-align: center; margin-top: 15px; padding: 10px; border-radius: 8px; font-weight: bold; min-height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card-controle">
-    <h3 class="titulo">CONTROLE ETEC</h3>
-    <p class="sinc-info" id="msgSinc">Sincronizando com a nuvem...</p>
+    <h3 class="titulo">CONTROLE DE SENHAS</h3>
 
-    <div style="border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
-        <label class="center-block text-center"><strong>SENHA NORMAL</strong></label>
+    <div class="section-controle">
+        <label class="center-block text-center" style="color: #0056b3;">SENHA NORMAL</label>
         <div class="contador-group">
             <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputNormal', -1)">-</button>
             <input type="number" id="inputNormal" class="form-control input-senha" value="1">
             <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputNormal', 1)">+</button>
         </div>
-        <button class="btn btn-primary btn-chamar" onclick="enviarParaNuvem('normal')">CHAMAR NORMAL</button>
+        <button id="btnNormal" class="btn btn-primary btn-chamar" onclick="chamarSenha('normal')">CHAMAR NORMAL</button>
     </div>
 
-    <div>
-        <label class="center-block text-center"><strong>SENHA PREFERENCIAL</strong></label>
+    <div class="section-controle">
+        <label class="center-block text-center" style="color: #d32f2f;">SENHA PREFERENCIAL</label>
         <div class="contador-group">
             <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputPref', -1)">-</button>
             <input type="number" id="inputPref" class="form-control input-senha" value="1">
             <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputPref', 1)">+</button>
         </div>
-        <button class="btn btn-danger btn-chamar" onclick="enviarParaNuvem('preferencial')">CHAMAR PREFERENCIAL</button>
+        <button id="btnPref" class="btn btn-danger btn-chamar" onclick="chamarSenha('preferencial')">CHAMAR PREF.</button>
     </div>
 
-    <div id="status"></div>
+    <div id="status">Pronto para chamar.</div>
 </div>
 
 <script src="lib/jquery-3.3.1.min.js"></script>
 <script>
-    // URL do seu Script e do CSV para sincronização
-    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbw4JdWjho1FHbHOvfNxRowLJ16FdXQYJSFqVci3WgBFaXrB8KGobzTPEvfMzH83s_1M/exec"; // Substitua pela sua URL de Implantação
+    // URL do seu Script e do CSV
+    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbw4JdWjho1FHbHOvfNxRowLJ16FdXQYJSFqVci3WgBFaXrB8KGobzTPEvfMzH83s_1M/exec"; 
     const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0Aes4529IBoRZAEDdX-whmdAqcFfMRLP71f2GAUbuuJZUERcuElwEWjL1pen9LuZ0ZavttjFlqWiF/pub?output=csv";
 
-    // Função para buscar o último número da planilha ao abrir o controle
-    function sincronizarControle() {
+    // Pega o valor atual da planilha apenas UMA VEZ ao carregar
+    function inicializarValores() {
+        $("#status").text("Buscando último número...");
         $.ajax({
             url: URL_CSV + "&cachebuster=" + new Date().getTime(),
             dataType: "text",
@@ -65,57 +66,78 @@
                 if (!data) return;
                 var colunas = data.split("\n")[0].split(",");
                 
-                // Extrai apenas os números
-                var numNormal = parseInt(colunas[0].replace(/[^\d]/g, '')) || 0;
-                var numPref = colunas[1] ? parseInt(colunas[1].replace(/[^\d]/g, '')) : 0;
+                // Limpeza dos dados
+                var numNormal = parseInt(colunas[0].replace(/\D/g, '')) || 0;
+                var numPref = colunas[1] ? parseInt(colunas[1].replace(/\D/g, '')) : 0;
 
-                // Atualiza os campos do controle
-                if(numNormal > 0) document.getElementById('inputNormal').value = numNormal;
+                // Se vier zero da planilha, mantemos 1. Se vier número, colocamos +1 para a próxima chamada
+                // Se preferir que comece do que parou, tire o +1.
+                if(numNormal > 0) document.getElementById('inputNormal').value = numNormal; 
                 if(numPref > 0) document.getElementById('inputPref').value = numPref;
                 
-                document.getElementById('msgSinc').innerText = "Sincronizado com o Painel";
+                $("#status").text("Sincronizado. Pronto.");
+            },
+            error: function() {
+                $("#status").text("Erro ao buscar inicial. Usando padrão 1.");
             }
         });
     }
 
     function alterarValor(id, delta) {
         let campo = document.getElementById(id);
-        let novoValor = parseInt(campo.value) + delta;
-        if (novoValor < 0) novoValor = 0;
+        let valorAtual = parseInt(campo.value) || 0;
+        let novoValor = valorAtual + delta;
+        if (novoValor < 1) novoValor = 1;
         campo.value = novoValor;
     }
 
-    function enviarParaNuvem(tipo) {
+    function chamarSenha(tipo) {
         const statusDiv = document.getElementById('status');
-        const valNormal = document.getElementById('inputNormal').value;
-        const valPref = document.getElementById('inputPref').value;
         
-        let valorBase = (tipo === 'normal') ? valNormal : valPref;
-        let valorFormatado = valorBase.toString().padStart(tipo === 'normal' ? 4 : 3, '0');
-        if (tipo === 'preferencial') valorFormatado = 'P' + valorFormatado;
-
-        statusDiv.style.backgroundColor = "#e1f5fe";
-        statusDiv.innerText = "Enviando " + valorFormatado + "...";
-
-        var img = new Image();
-        img.src = `${URL_GOOGLE_SCRIPT}?senha=${valorFormatado}&tipo=${tipo}&t=` + new Date().getTime();
+        // Pega os valores
+        let valNormal = parseInt(document.getElementById('inputNormal').value);
+        let valPref = parseInt(document.getElementById('inputPref').value);
         
-        setTimeout(() => {
-            statusDiv.style.backgroundColor = "#e8f5e9";
-            statusDiv.innerText = "Sucesso: " + valorFormatado + " chamada!";
-            setTimeout(() => { statusDiv.innerText = ""; statusDiv.style.backgroundColor = "transparent"; }, 3000);
-        }, 1000);
+        // Formata para envio (Preenche com zeros)
+        let strNormal = valNormal.toString().padStart(4, '0');
+        let strPref = valPref.toString().padStart(3, '0');
+        
+        // Define qual senha estamos chamando agora para exibir no feedback
+        let senhaChamada = (tipo === 'normal') ? strNormal : "P" + strPref;
+
+        statusDiv.style.color = "#d32f2f";
+        statusDiv.innerText = "Enviando " + senhaChamada + "...";
+
+        // Desabilita botões para evitar duplo clique
+        $(".btn-chamar").prop("disabled", true);
+
+        // Usamos o método 'no-cors' do fetch que é mais moderno e evita erros de bloqueio
+        fetch(`${URL_GOOGLE_SCRIPT}?senha=${(tipo === 'normal' ? strNormal : 'P'+strPref)}&tipo=${tipo}`, {
+            mode: 'no-cors' // Importante para enviar para o Google Script sem erro
+        }).then(() => {
+            // Sucesso presumido (no-cors não retorna resposta legível, mas envia)
+            statusDiv.style.color = "green";
+            statusDiv.innerText = "SUCESSO: " + senhaChamada + " enviada!";
+            
+            // Incrementa automaticamente o contador clicado para facilitar a próxima
+            if (tipo === 'normal') alterarValor('inputNormal', 1);
+            else alterarValor('inputPref', 1);
+
+            setTimeout(() => { 
+                statusDiv.style.color = "#333";
+                statusDiv.innerText = "Pronto para chamar."; 
+                $(".btn-chamar").prop("disabled", false);
+            }, 2000);
+        }).catch(err => {
+            statusDiv.innerText = "Erro no envio. Tente novamente.";
+            $(".btn-chamar").prop("disabled", false);
+        });
     }
 
-    // Tenta sincronizar assim que abre a página
     $(document).ready(function() {
-        sincronizarControle();
+        inicializarValores();
     });
 </script>
 
 </body>
 </html>
-
-
-
-
