@@ -2,109 +2,195 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Remoto ETEC</title>
-    <link href="css/bootstrap.css" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Controle ETEC (Multi-Usuário)</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <style>
-        body { padding: 20px; background-color: #f4f7f6; font-family: sans-serif; }
-        .card-controle { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        .titulo { text-align: center; color: #b11116; font-weight: bold; margin-bottom: 20px; }
-        .contador-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
-        .btn-ajuste { width: 50px; height: 50px; font-size: 20px; font-weight: bold; }
-        .input-senha { text-align: center; font-size: 24px; font-weight: bold; width: 100px !important; }
-        .btn-chamar { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 8px; }
-        #status { text-align: center; margin-top: 15px; font-size: 0.9em; color: #666; }
+        body { background-color: #e9ecef; font-family: 'Segoe UI', sans-serif; padding: 10px; }
+        .card-controle { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        .titulo { text-align: center; color: #b11116; font-weight: 800; margin: 0 0 15px 0; font-size: 1.4em; }
+        
+        /* Estilo dos Blocos */
+        .bloco { padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 1px solid rgba(0,0,0,0.1); transition: all 0.3s; }
+        .bloco-normal { background: #e3f2fd; border-left: 6px solid #1976d2; }
+        .bloco-pref { background: #ffebee; border-left: 6px solid #d32f2f; }
+        
+        .label-tipo { font-weight: 900; font-size: 1.1em; margin-bottom: 10px; display: block; letter-spacing: 1px;}
+        .txt-normal { color: #1565c0; }
+        .txt-pref { color: #c62828; }
+
+        .display-numero { font-size: 3em; font-weight: bold; margin: 10px 0; line-height: 1; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
+        
+        .btn-chamar { width: 100%; font-size: 1.2em; font-weight: bold; padding: 12px; border-radius: 8px; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-chamar:active { transform: scale(0.97); box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+
+        .ajuste-manual { margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
+        .btn-mini { padding: 5px 15px; font-weight: bold; font-size: 1.2em; border-radius: 6px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); }
+
+        #status-conexao { text-align: center; font-size: 0.85em; color: #666; margin-top: 10px; }
+        .badge-live { background-color: #28a745; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; vertical-align: middle; }
     </style>
 </head>
 <body>
 
 <div class="card-controle">
-    <h3 class="titulo">CONTROLE MOBILE</h3>
-    
-    <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-        <label class="center-block text-center" style="color:#0d47a1;">NORMAL</label>
-        <div class="contador-group">
-            <button class="btn btn-default btn-ajuste" onclick="ajustarLocal('normal', -1)">-</button>
-            <input type="number" id="inputNormal" class="form-control input-senha" value="0">
-            <button class="btn btn-default btn-ajuste" onclick="ajustarLocal('normal', 1)">+</button>
+    <div class="titulo">PAINEL ETEC <span class="badge-live">AO VIVO</span></div>
+
+    <div class="bloco bloco-normal">
+        <span class="label-tipo txt-normal">NORMAL</span>
+        <div style="font-size: 0.9em; color: #555;">No Painel: <strong id="lblUltimoNormal">--</strong></div>
+        
+        <div class="display-numero txt-normal" id="displayNormal">1</div>
+        
+        <button class="btn btn-primary btn-chamar" onclick="chamar('normal')">CHAMAR PRÓXIMO</button>
+        
+        <div class="ajuste-manual">
+            <button class="btn-mini" onclick="ajustarLocal('normal', -1)">-</button>
+            <span style="align-self:center; font-size:0.8em; opacity:0.7">CORRIGIR</span>
+            <button class="btn-mini" onclick="ajustarLocal('normal', 1)">+</button>
         </div>
-        <button class="btn btn-primary btn-chamar" onclick="enviar('normal')">CHAMAR NORMAL</button>
     </div>
 
-    <div style="background: #ffebee; padding: 15px; border-radius: 10px;">
-        <label class="center-block text-center" style="color:#b71c1c;">PREFERENCIAL</label>
-        <div class="contador-group">
-            <button class="btn btn-default btn-ajuste" onclick="ajustarLocal('preferencial', -1)">-</button>
-            <input type="number" id="inputPref" class="form-control input-senha" value="0">
-            <button class="btn btn-default btn-ajuste" onclick="ajustarLocal('preferencial', 1)">+</button>
+    <div class="bloco bloco-pref">
+        <span class="label-tipo txt-pref">PREFERENCIAL</span>
+        <div style="font-size: 0.9em; color: #555;">No Painel: <strong id="lblUltimoPref">--</strong></div>
+        
+        <div class="display-numero txt-pref" id="displayPref">1</div>
+        
+        <button class="btn btn-danger btn-chamar" onclick="chamar('pref')">CHAMAR PRÓXIMO</button>
+        
+        <div class="ajuste-manual">
+            <button class="btn-mini" onclick="ajustarLocal('pref', -1)">-</button>
+            <span style="align-self:center; font-size:0.8em; opacity:0.7">CORRIGIR</span>
+            <button class="btn-mini" onclick="ajustarLocal('pref', 1)">+</button>
         </div>
-        <button class="btn btn-danger btn-chamar" onclick="enviar('preferencial')">CHAMAR PREF.</button>
     </div>
 
-    <div id="status">Conectando ao sistema...</div>
+    <div id="status-conexao">Conectando aos outros aparelhos...</div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>
-    // --- COLE A MESMA CONFIGURAÇÃO DO FIREBASE AQUI ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyD...",
-      authDomain: "seu-projeto.firebaseapp.com",
-      databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
-      projectId: "seu-projeto",
-      storageBucket: "seu-projeto.appspot.com",
-      messagingSenderId: "123...",
-      appId: "1:123..."
-    };
-    // --------------------------------------------------
+    // --- IMPORTANTE: TEM QUE SER IGUAL AO DO SCRIPT.JS ---
+    const ID_EVENTO = "etec-pv-matricula-2026-oficial";
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    
-    // Ao abrir, pega o valor atual do banco para não começar do zero errado
-    db.ref('chamada').once('value').then((snapshot) => {
-        const data = snapshot.val();
-        if(data) {
-            document.getElementById('inputNormal').value = (data.normal || 0) + 1; // Já sugere o próximo
-            document.getElementById('inputPref').value = (data.preferencial || 0) + 1;
-            document.getElementById('status').innerText = "Conectado e Sincronizado.";
-        } else {
-            document.getElementById('status').innerText = "Conectado (Iniciando do 1).";
-            document.getElementById('inputNormal').value = 1;
-            document.getElementById('inputPref').value = 1;
-        }
-    });
+    // Variáveis locais
+    var proximoNormal = 1;
+    var proximoPref = 1;
+    var processandoClick = false;
 
-    function ajustarLocal(tipo, delta) {
-        let id = (tipo === 'normal') ? 'inputNormal' : 'inputPref';
-        let el = document.getElementById(id);
-        let val = parseInt(el.value) || 0;
-        if (val + delta < 0) return;
-        el.value = val + delta;
-    }
+    // Sincroniza com a nuvem a cada 2 segundos
+    // Assim, se outro professor chamar, seu celular atualiza sozinho
+    setInterval(sincronizarComNuvem, 2000);
 
-    function enviar(tipo) {
-        let id = (tipo === 'normal') ? 'inputNormal' : 'inputPref';
-        let valorParaChamar = parseInt(document.getElementById(id).value);
+    function sincronizarComNuvem() {
+        if(processandoClick) return; // Não atualiza se você estiver clicando agora
 
-        document.getElementById('status').innerText = "Enviando...";
+        $.ajax({
+            url: "https://dweet.io/get/latest/dweet/for/" + ID_EVENTO + "?r=" + Math.random(),
+            dataType: "json",
+            cache: false,
+            success: function(response) {
+                $("#status-conexao").text("Sincronizado com a equipe.");
+                
+                if (response && response.with && response.with.length > 0) {
+                    var dados = response.with[0].content;
+                    
+                    var nuvemNormal = parseInt(dados.normal) || 0;
+                    var nuvemPref = parseInt(dados.pref) || 0;
 
-        // Atualiza apenas o campo específico no Firebase
-        let updates = {};
-        updates['chamada/' + tipo] = valorParaChamar;
+                    // Atualiza os labels "No Painel"
+                    $("#lblUltimoNormal").text(nuvemNormal);
+                    $("#lblUltimoPref").text("P" + nuvemPref);
 
-        db.ref().update(updates, (error) => {
-            if (error) {
-                document.getElementById('status').innerText = "Erro ao enviar!";
-            } else {
-                document.getElementById('status').innerText = "Chamado: " + valorParaChamar;
-                // Prepara automaticamente o próximo número
-                ajustarLocal(tipo, 1);
+                    // A mágica: Se a nuvem diz que o último foi 10, seu botão vira 11 automaticamente
+                    // Só atualizamos se o valor da nuvem for maior ou igual ao que achávamos que era o último
+                    // (Isso evita voltar número se a internet oscilar)
+                    
+                    if (nuvemNormal >= (proximoNormal - 1)) {
+                        proximoNormal = nuvemNormal + 1;
+                        $("#displayNormal").text(proximoNormal);
+                    }
+
+                    if (nuvemPref >= (proximoPref - 1)) {
+                        proximoPref = nuvemPref + 1;
+                        $("#displayPref").text(proximoPref);
+                    }
+                }
+            },
+            error: function() {
+                $("#status-conexao").html("<span style='color:red'>Sem internet...</span>");
             }
         });
     }
+
+    function ajustarLocal(tipo, delta) {
+        if (tipo === 'normal') {
+            proximoNormal += delta;
+            if(proximoNormal < 1) proximoNormal = 1;
+            $("#displayNormal").text(proximoNormal);
+        } else {
+            proximoPref += delta;
+            if(proximoPref < 1) proximoPref = 1;
+            $("#displayPref").text(proximoPref);
+        }
+    }
+
+    function chamar(tipo) {
+        processandoClick = true; // Pausa a sincronia automática para não dar conflito visual
+        $("#status-conexao").text("Enviando...");
+        $(".btn-chamar").prop("disabled", true);
+
+        // Define os valores finais para enviar
+        // Se cliquei no normal, envio o normal atual. O pref mantemos o ANTERIOR (proximo - 1)
+        // para não pular senha do outro setor sem querer.
+        
+        let envioNormal = (tipo === 'normal') ? proximoNormal : (proximoNormal - 1);
+        let envioPref = (tipo === 'pref') ? proximoPref : (proximoPref - 1);
+
+        // Proteção: nunca enviar 0 ou negativo
+        if (envioNormal < 0) envioNormal = 0;
+        if (envioPref < 0) envioPref = 0;
+
+        $.ajax({
+            url: "https://dweet.io/dweet/for/" + ID_EVENTO,
+            method: "POST",
+            data: {
+                "normal": envioNormal,
+                "pref": envioPref
+            },
+            success: function() {
+                $("#status-conexao").text("Sucesso!");
+                
+                // Se deu certo, já incrementa localmente para o próximo
+                if (tipo === 'normal') {
+                    $("#lblUltimoNormal").text(proximoNormal); // O que acabei de chamar vira "No Painel"
+                    proximoNormal++;
+                    $("#displayNormal").text(proximoNormal);
+                } else {
+                    $("#lblUltimoPref").text("P" + proximoPref);
+                    proximoPref++;
+                    $("#displayPref").text(proximoPref);
+                }
+
+                setTimeout(() => {
+                    $(".btn-chamar").prop("disabled", false);
+                    processandoClick = false; // Libera sincronia
+                    sincronizarComNuvem(); // Força uma checagem geral
+                }, 1000);
+            },
+            error: function() {
+                alert("Erro ao enviar. Verifique sua conexão 4G/Wi-Fi.");
+                $(".btn-chamar").prop("disabled", false);
+                processandoClick = false;
+            }
+        });
+    }
+
+    // Primeira carga
+    $(document).ready(function(){
+        sincronizarComNuvem();
+    });
 </script>
 </body>
 </html>
