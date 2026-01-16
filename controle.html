@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Controle ETEC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Chamada - ETEC</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { padding: 20px; background-color: #f4f7f6; font-family: sans-serif; }
@@ -16,21 +16,21 @@
         .btn-ajuste { width: 50px; height: 50px; font-size: 20px; font-weight: bold; }
         .input-senha { text-align: center; font-size: 24px; font-weight: bold; width: 120px !important; height: 50px; }
         .btn-chamar { width: 100%; margin-top: 10px; font-weight: bold; padding: 12px; font-size: 18px; }
-        #status { text-align: center; margin-top: 15px; padding: 10px; border-radius: 8px; min-height: 45px; font-size: 0.9em; }
-        .sinc-info { font-size: 0.8em; color: #888; text-align: center; margin-bottom: 15px; }
+        #status { text-align: center; margin-top: 15px; padding: 10px; border-radius: 8px; min-height: 45px; font-weight:bold; }
+        .sinc-info { font-size: 0.85em; color: #888; text-align: center; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
 <div class="card-controle">
     <h3 class="titulo">CONTROLE ETEC</h3>
-    <p class="sinc-info" id="msgSinc">Conectando à equipe...</p>
+    <p class="sinc-info" id="msgSinc">Conectando...</p>
 
     <div style="border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
         <label class="center-block text-center"><strong>SENHA NORMAL</strong></label>
         <div class="contador-group">
             <button class="btn btn-default btn-ajuste" onclick="ajustar('normal', -1)">-</button>
-            <input type="number" id="inputNormal" class="form-control input-senha" value="...">
+            <input type="number" id="inputNormal" class="form-control input-senha" value="1">
             <button class="btn btn-default btn-ajuste" onclick="ajustar('normal', 1)">+</button>
         </div>
         <button class="btn btn-primary btn-chamar" onclick="enviar('normal')">CHAMAR NORMAL</button>
@@ -40,137 +40,126 @@
         <label class="center-block text-center"><strong>SENHA PREFERENCIAL</strong></label>
         <div class="contador-group">
             <button class="btn btn-default btn-ajuste" onclick="ajustar('pref', -1)">-</button>
-            <input type="number" id="inputPref" class="form-control input-senha" value="...">
+            <input type="number" id="inputPref" class="form-control input-senha" value="1">
             <button class="btn btn-default btn-ajuste" onclick="ajustar('pref', 1)">+</button>
         </div>
         <button class="btn btn-danger btn-chamar" onclick="enviar('pref')">CHAMAR PREFERENCIAL</button>
     </div>
 
-    <div id="status">Aguardando...</div>
+    <div id="status"></div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>
-    // --- CHAVE DE SEGURANÇA (IGUAL AO PAINEL) ---
+    // --- IMPORTANTE: TEM QUE SER IGUAL AO DO PAINEL ---
     const ID_ESCOLA = "etec-pv-2026-oficial";
 
-    // Variáveis para guardar o estado real da nuvem
-    var ultimoNuvemNormal = 0;
-    var ultimoNuvemPref = 0;
-    var editando = false; // Para saber se o usuário está clicando agora
+    // Variáveis de controle
+    var cacheNormal = 0;
+    var cachePref = 0;
+    var editando = false;
 
-    // 1. Sincronia Automática (O "Cérebro" dos 10 usuários)
+    // Sincronia Automática
     setInterval(function() {
-        if(editando) return; // Se você estiver clicando, ele não atualiza pra não atrapalhar
+        if(editando) return; // Não atualiza se você estiver mexendo
 
         $.ajax({
             url: "https://dweet.io/get/latest/dweet/for/" + ID_ESCOLA + "?r=" + Math.random(),
             dataType: "json",
             cache: false,
             success: function(response) {
-                $("#msgSinc").text("● Sincronizado com a equipe");
+                // SUCESSO NA CONEXÃO
+                $("#msgSinc").text("● Online e Sincronizado");
                 $("#msgSinc").css("color", "green");
 
+                // Se a chave existir, pegamos os dados. Se não (primeira vez), mantemos o que está.
                 if (response && response.with && response.with.length > 0) {
                     var dados = response.with[0].content;
-                    
                     var n = parseInt(dados.normal) || 0;
                     var p = parseInt(dados.pref) || 0;
 
-                    // Só atualiza o input se a nuvem tiver um número maior ou igual
-                    // Isso evita que o input volte para trás do nada
-                    if (n >= ultimoNuvemNormal) {
-                        ultimoNuvemNormal = n;
-                        // O input mostra SEMPRE o próximo número a ser chamado (Atual + 1)
-                        if(!document.activeElement.id.includes("input")) { // Só muda se não estiver digitando
-                            $("#inputNormal").val(ultimoNuvemNormal + 1);
-                        }
-                    }
+                    // Atualiza cache
+                    if(n > cacheNormal) cacheNormal = n;
+                    if(p > cachePref) cachePref = p;
 
-                    if (p >= ultimoNuvemPref) {
-                        ultimoNuvemPref = p;
-                        if(!document.activeElement.id.includes("input")) {
-                            $("#inputPref").val(ultimoNuvemPref + 1);
-                        }
+                    // O input mostra o PRÓXIMO (Cache + 1)
+                    if(!document.activeElement.id.includes("input")) {
+                        $("#inputNormal").val(cacheNormal + 1);
+                        $("#inputPref").val(cachePref + 1);
                     }
                 }
             },
-            error: function() {
-                $("#msgSinc").text("○ Sem conexão...");
-                $("#msgSinc").css("color", "red");
+            error: function(xhr) {
+                // Se der 404, significa que a chave é nova, não é erro de internet!
+                if(xhr.status === 404) {
+                     $("#msgSinc").text("● Sistema Iniciado (Novo)");
+                     $("#msgSinc").css("color", "blue");
+                } else {
+                     $("#msgSinc").text("○ Sem conexão (Tentando...)");
+                     $("#msgSinc").css("color", "red");
+                }
             }
         });
-    }, 2000); // Atualiza a cada 2 segundos
+    }, 2000);
 
-    // 2. Botões + e -
+    // Botões + e -
     function ajustar(tipo, delta) {
-        editando = true; // Pausa a sincronia automática rapidinho
+        editando = true;
         let id = (tipo === 'normal') ? "#inputNormal" : "#inputPref";
-        let atual = parseInt($(id).val()) || 0;
-        let novo = atual + delta;
+        let valor = parseInt($(id).val()) || 1;
+        let novo = valor + delta;
         if (novo < 1) novo = 1;
         $(id).val(novo);
         
-        // Libera a sincronia depois de 3 segundos sem mexer
+        // Volta a sincronizar depois de 3s
         setTimeout(() => { editando = false; }, 3000);
     }
 
-    // 3. Função de Enviar (Corrigida para evitar erros)
+    // Enviar para Nuvem
     function enviar(tipoClicado) {
-        // Pega o valor que está ESCREVIDO no input (O próximo a ser chamado)
         let valNormal = parseInt($("#inputNormal").val());
         let valPref = parseInt($("#inputPref").val());
         
-        let textoFeedback = (tipoClicado === 'normal') ? valNormal : "P" + valPref;
+        let msg = (tipoClicado === 'normal') ? valNormal : "P" + valPref;
         
-        $("#status").text("Enviando " + textoFeedback + "...");
-        $("#status").css("background-color", "#e1f5fe");
-        $(".btn-chamar").prop("disabled", true); // Trava botão para não clicar 2x
+        $("#status").text("Enviando " + msg + "...");
+        $("#status").css("background-color", "#e3f2fd");
+        $(".btn-chamar").prop("disabled", true);
 
-        // Vamos usar um método AJAX mais robusto
+        // Usamos POST para garantir envio
         $.ajax({
             url: "https://dweet.io/dweet/for/" + ID_ESCOLA,
             method: "POST",
             data: {
-                "normal": (tipoClicado === 'normal') ? valNormal : (valNormal - 1), // Envia o atual
+                "normal": (tipoClicado === 'normal') ? valNormal : (valNormal - 1),
                 "pref": (tipoClicado === 'pref') ? valPref : (valPref - 1)
             },
             success: function() {
-                $("#status").text("SUCESSO: " + textoFeedback + " CHAMADO!");
+                $("#status").text("CHAMADO: " + msg);
                 $("#status").css("background-color", "#d4edda");
-                $("#status").css("color", "#155724");
-
-                // Se enviou com sucesso, incrementa localmente para o próximo da fila
-                if (tipoClicado === 'normal') {
-                    ultimoNuvemNormal = valNormal; // Confirma que esse já foi
+                
+                // Atualiza localmente para o próximo imediatamente
+                if(tipoClicado === 'normal') {
+                    cacheNormal = valNormal;
                     $("#inputNormal").val(valNormal + 1);
                 } else {
-                    ultimoNuvemPref = valPref;
+                    cachePref = valPref;
                     $("#inputPref").val(valPref + 1);
                 }
 
-                setTimeout(function() {
-                    $("#status").text("Pronto.");
+                setTimeout(() => {
+                    $("#status").text("");
                     $("#status").css("background-color", "transparent");
-                    $("#status").css("color", "#333");
                     $(".btn-chamar").prop("disabled", false);
                 }, 2000);
             },
-            error: function(xhr, status, error) {
-                console.log(error);
-                $("#status").text("ERRO DE REDE. Tente de novo.");
+            error: function() {
+                $("#status").text("Erro ao enviar! Verifique a internet.");
                 $("#status").css("background-color", "#f8d7da");
-                $("#status").css("color", "#721c24");
                 $(".btn-chamar").prop("disabled", false);
             }
         });
     }
-
-    // Ao carregar, tenta focar no normal
-    $(document).ready(function() {
-        $("#inputNormal").val("...");
-        $("#inputPref").val("...");
-    });
 </script>
 
 </body>
