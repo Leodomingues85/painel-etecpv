@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAINEL DE SENHAS - ETEC PRESIDENTE VARGAS</title>
+    <title>PAINEL DE SENHAS - ETEC</title>
     <link href="css/bootstrap.css" rel="stylesheet">
     <style>
         body { background-color: #f0f2f5; color: #333; font-family: 'Arial', sans-serif; overflow: hidden; margin: 0; padding: 0; }
@@ -20,13 +20,6 @@
         .footer { position: absolute; bottom: 40px; width: 100%; text-align: center; font-size: 1.3em; color: #444; font-weight: bold; text-transform: uppercase; }
         #debug-info { position: fixed; bottom: 10px; right: 15px; font-size: 0.85em; color: #888; font-family: 'Courier New', Courier, monospace; background: rgba(255, 255, 255, 0.7); padding: 2px 8px; border-radius: 5px; }
     </style>
-    <head>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <script src="lib/jquery-3.3.1.min.js"></script>
-    <script src="lib/scripts.js"></script>
-</head>
 </head>
 <body>
     <div class="header-painel">
@@ -59,17 +52,4 @@
     <div class="footer">Aguarde sua senha ser chamada no painel</div>
     
     <div id="debug-info">
-        Última atualização: <span id="last-sync">--:--:--</span>
-    </div>
-    
-    <audio id="audioChamada" src="audio/chamada.wav" preload="auto"></audio>
-
-    <script src="lib/jquery-3.3.1.min.js"></script>
-    <script src="lib/scripts.js"></script>
-    
-</body>
-</html>
-
-
-
-
+        <button onclick="checarNuvem()" class="btn btn-xs btn-default" style="margin-right: 8px
