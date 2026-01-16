@@ -3,80 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle LOCAL - ETEC</title>
+    <title>Controle Remoto ETEC</title>
     <link href="css/bootstrap.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <style>
         body { padding: 20px; background-color: #f4f7f6; font-family: sans-serif; }
-        .card-controle { 
-            background: white; padding: 30px; border-radius: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 500px; margin: auto;
-        }
-        .btn-ajuste { width: 60px; height: 50px; font-size: 24px; font-weight: bold; }
-        .input-senha { text-align: center; font-size: 30px; font-weight: bold; width: 140px !important; height: 50px; }
-        .btn-chamar { width: 100%; margin-top: 10px; font-weight: bold; padding: 15px; font-size: 20px; }
+        .card-controle { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        .titulo { text-align: center; color: #b11116; font-weight: bold; margin-bottom: 20px; }
         .contador-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .btn-ajuste { width: 50px; height: 50px; font-size: 20px; font-weight: bold; }
+        .input-senha { text-align: center; font-size: 24px; font-weight: bold; width: 100px !important; }
+        .btn-chamar { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 8px; }
+        #status { text-align: center; margin-top: 15px; font-size: 0.9em; color: #666; }
     </style>
 </head>
 <body>
 
 <div class="card-controle">
-    <h3 class="text-center" style="color:#b11116; font-weight:bold;">CONTROLE LOCAL</h3>
-    <p class="text-center text-muted">Funciona apenas no mesmo PC do Painel</p>
-
-    <div style="padding: 20px; background: #f9f9f9; border-radius: 10px; margin-bottom: 20px;">
-        <label class="center-block text-center" style="color:#0056b3;">NORMAL</label>
+    <h3 class="titulo">CONTROLE MOBILE</h3>
+    
+    <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <label class="center-block text-center" style="color:#0d47a1;">NORMAL</label>
         <div class="contador-group">
-            <button class="btn btn-default btn-ajuste" onclick="ajustar('normal', -1)">-</button>
-            <input type="number" id="inputNormal" class="form-control input-senha" value="1">
-            <button class="btn btn-default btn-ajuste" onclick="ajustar('normal', 1)">+</button>
+            <button class="btn btn-default btn-ajuste" onclick="ajustarLocal('normal', -1)">-</button>
+            <input type="number" id="inputNormal" class="form-control input-senha" value="0">
+            <button class="btn btn-default btn-ajuste" onclick="ajustarLocal('normal', 1)">+</button>
         </div>
-        <button class="btn btn-primary btn-chamar" onclick="chamar('normal')">CHAMAR NORMAL</button>
+        <button class="btn btn-primary btn-chamar" onclick="enviar('normal')">CHAMAR NORMAL</button>
     </div>
 
-    <div style="padding: 20px; background: #f9f9f9; border-radius: 10px;">
-        <label class="center-block text-center" style="color:#d32f2f;">PREFERENCIAL</label>
+    <div style="background: #ffebee; padding: 15px; border-radius: 10px;">
+        <label class="center-block text-center" style="color:#b71c1c;">PREFERENCIAL</label>
         <div class="contador-group">
-            <button class="btn btn-default btn-ajuste" onclick="ajustar('pref', -1)">-</button>
-            <input type="number" id="inputPref" class="form-control input-senha" value="1">
-            <button class="btn btn-default btn-ajuste" onclick="ajustar('pref', 1)">+</button>
+            <button class="btn btn-default btn-ajuste" onclick="ajustarLocal('preferencial', -1)">-</button>
+            <input type="number" id="inputPref" class="form-control input-senha" value="0">
+            <button class="btn btn-default btn-ajuste" onclick="ajustarLocal('preferencial', 1)">+</button>
         </div>
-        <button class="btn btn-danger btn-chamar" onclick="chamar('pref')">CHAMAR PREF.</button>
+        <button class="btn btn-danger btn-chamar" onclick="enviar('preferencial')">CHAMAR PREF.</button>
     </div>
+
+    <div id="status">Conectando ao sistema...</div>
 </div>
 
 <script>
-    // Ao abrir, recupera o último número salvo
-    window.onload = function() {
-        let salvoNormal = localStorage.getItem('etec_normal') || 1;
-        let salvoPref = localStorage.getItem('etec_pref') || 1;
-        document.getElementById('inputNormal').value = salvoNormal;
-        document.getElementById('inputPref').value = salvoPref;
-    }
+    // --- COLE A MESMA CONFIGURAÇÃO DO FIREBASE AQUI ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyD...",
+      authDomain: "seu-projeto.firebaseapp.com",
+      databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
+      projectId: "seu-projeto",
+      storageBucket: "seu-projeto.appspot.com",
+      messagingSenderId: "123...",
+      appId: "1:123..."
+    };
+    // --------------------------------------------------
 
-    function ajustar(tipo, delta) {
-        let input = document.getElementById(tipo === 'normal' ? 'inputNormal' : 'inputPref');
-        let novoValor = parseInt(input.value) + delta;
-        if (novoValor < 1) novoValor = 1;
-        input.value = novoValor;
-    }
-
-    function chamar(tipo) {
-        let input = document.getElementById(tipo === 'normal' ? 'inputNormal' : 'inputPref');
-        let valor = parseInt(input.value);
-        
-        // 1. Salva no Armazenamento Local (Isso dispara o evento no Painel)
-        if (tipo === 'normal') {
-            localStorage.setItem('etec_senha_atual_normal', valor);
-            localStorage.setItem('etec_trigger', 'normal-' + Date.now()); // Força atualização
-            localStorage.setItem('etec_normal', valor + 1); // Salva o próximo
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Ao abrir, pega o valor atual do banco para não começar do zero errado
+    db.ref('chamada').once('value').then((snapshot) => {
+        const data = snapshot.val();
+        if(data) {
+            document.getElementById('inputNormal').value = (data.normal || 0) + 1; // Já sugere o próximo
+            document.getElementById('inputPref').value = (data.preferencial || 0) + 1;
+            document.getElementById('status').innerText = "Conectado e Sincronizado.";
         } else {
-            localStorage.setItem('etec_senha_atual_pref', valor);
-            localStorage.setItem('etec_trigger', 'pref-' + Date.now()); // Força atualização
-            localStorage.setItem('etec_pref', valor + 1); // Salva o próximo
+            document.getElementById('status').innerText = "Conectado (Iniciando do 1).";
+            document.getElementById('inputNormal').value = 1;
+            document.getElementById('inputPref').value = 1;
         }
+    });
 
-        // 2. Incrementa o input visualmente para o próximo
-        input.value = valor + 1;
+    function ajustarLocal(tipo, delta) {
+        let id = (tipo === 'normal') ? 'inputNormal' : 'inputPref';
+        let el = document.getElementById(id);
+        let val = parseInt(el.value) || 0;
+        if (val + delta < 0) return;
+        el.value = val + delta;
+    }
+
+    function enviar(tipo) {
+        let id = (tipo === 'normal') ? 'inputNormal' : 'inputPref';
+        let valorParaChamar = parseInt(document.getElementById(id).value);
+
+        document.getElementById('status').innerText = "Enviando...";
+
+        // Atualiza apenas o campo específico no Firebase
+        let updates = {};
+        updates['chamada/' + tipo] = valorParaChamar;
+
+        db.ref().update(updates, (error) => {
+            if (error) {
+                document.getElementById('status').innerText = "Erro ao enviar!";
+            } else {
+                document.getElementById('status').innerText = "Chamado: " + valorParaChamar;
+                // Prepara automaticamente o próximo número
+                ajustarLocal(tipo, 1);
+            }
+        });
     }
 </script>
 </body>
