@@ -21,3 +21,97 @@
     </style>
 </head>
 <body>
+
+<div class="card-controle">
+    <h3 class="titulo">CONTROLE ETEC</h3>
+    <p class="sinc-info" id="msgSinc">Sincronizando com a nuvem...</p>
+
+    <div style="border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
+        <label class="center-block text-center"><strong>SENHA NORMAL</strong></label>
+        <div class="contador-group">
+            <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputNormal', -1)">-</button>
+            <input type="number" id="inputNormal" class="form-control input-senha" value="1">
+            <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputNormal', 1)">+</button>
+        </div>
+        <button class="btn btn-primary btn-chamar" onclick="enviarParaNuvem('normal')">CHAMAR NORMAL</button>
+    </div>
+
+    <div>
+        <label class="center-block text-center"><strong>SENHA PREFERENCIAL</strong></label>
+        <div class="contador-group">
+            <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputPref', -1)">-</button>
+            <input type="number" id="inputPref" class="form-control input-senha" value="1">
+            <button class="btn btn-default btn-ajuste" onclick="alterarValor('inputPref', 1)">+</button>
+        </div>
+        <button class="btn btn-danger btn-chamar" onclick="enviarParaNuvem('preferencial')">CHAMAR PREFERENCIAL</button>
+    </div>
+
+    <div id="status"></div>
+</div>
+
+<script src="lib/jquery-3.3.1.min.js"></script>
+<script>
+    // URL do seu Script e do CSV para sincronização
+    const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbw4JdWjho1FHbHOvfNxRowLJ16FdXQYJSFqVci3WgBFaXrB8KGobzTPEvfMzH83s_1M/exec"; // Substitua pela sua URL de Implantação
+    const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0Aes4529IBoRZAEDdX-whmdAqcFfMRLP71f2GAUbuuJZUERcuElwEWjL1pen9LuZ0ZavttjFlqWiF/pub?output=csv";
+
+    // Função para buscar o último número da planilha ao abrir o controle
+    function sincronizarControle() {
+        $.ajax({
+            url: URL_CSV + "&cachebuster=" + new Date().getTime(),
+            dataType: "text",
+            cache: false,
+            success: function(data) {
+                if (!data) return;
+                var colunas = data.split("\n")[0].split(",");
+                
+                // Extrai apenas os números
+                var numNormal = parseInt(colunas[0].replace(/[^\d]/g, '')) || 0;
+                var numPref = colunas[1] ? parseInt(colunas[1].replace(/[^\d]/g, '')) : 0;
+
+                // Atualiza os campos do controle
+                if(numNormal > 0) document.getElementById('inputNormal').value = numNormal;
+                if(numPref > 0) document.getElementById('inputPref').value = numPref;
+                
+                document.getElementById('msgSinc').innerText = "Sincronizado com o Painel";
+            }
+        });
+    }
+
+    function alterarValor(id, delta) {
+        let campo = document.getElementById(id);
+        let novoValor = parseInt(campo.value) + delta;
+        if (novoValor < 0) novoValor = 0;
+        campo.value = novoValor;
+    }
+
+    function enviarParaNuvem(tipo) {
+        const statusDiv = document.getElementById('status');
+        const valNormal = document.getElementById('inputNormal').value;
+        const valPref = document.getElementById('inputPref').value;
+        
+        let valorBase = (tipo === 'normal') ? valNormal : valPref;
+        let valorFormatado = valorBase.toString().padStart(tipo === 'normal' ? 4 : 3, '0');
+        if (tipo === 'preferencial') valorFormatado = 'P' + valorFormatado;
+
+        statusDiv.style.backgroundColor = "#e1f5fe";
+        statusDiv.innerText = "Enviando " + valorFormatado + "...";
+
+        var img = new Image();
+        img.src = `${URL_GOOGLE_SCRIPT}?senha=${valorFormatado}&tipo=${tipo}&t=` + new Date().getTime();
+        
+        setTimeout(() => {
+            statusDiv.style.backgroundColor = "#e8f5e9";
+            statusDiv.innerText = "Sucesso: " + valorFormatado + " chamada!";
+            setTimeout(() => { statusDiv.innerText = ""; statusDiv.style.backgroundColor = "transparent"; }, 3000);
+        }, 1000);
+    }
+
+    // Tenta sincronizar assim que abre a página
+    $(document).ready(function() {
+        sincronizarControle();
+    });
+</script>
+
+</body>
+</html>
