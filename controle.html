@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Chamada - ETEC</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <title>Controle de Chamada Sincronizado - ETEC</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
     <style>
         body { padding: 20px; background-color: #f4f7f6; font-family: sans-serif; }
         .card-controle { 
@@ -14,153 +14,10 @@
         .titulo { color: #b11116; font-weight: bold; text-align: center; margin-bottom: 20px; }
         .contador-group { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
         .btn-ajuste { width: 50px; height: 50px; font-size: 20px; font-weight: bold; }
-        .input-senha { text-align: center; font-size: 24px; font-weight: bold; width: 120px !important; height: 50px; }
+        .input-senha { text-align: center; font-size: 24px; font-weight: bold; width: 120px !important; }
         .btn-chamar { width: 100%; margin-top: 10px; font-weight: bold; padding: 12px; font-size: 18px; }
-        #status { text-align: center; margin-top: 15px; padding: 10px; border-radius: 8px; min-height: 45px; font-weight:bold; }
-        .sinc-info { font-size: 0.85em; color: #888; text-align: center; margin-bottom: 15px; }
+        #status { text-align: center; margin-top: 15px; padding: 10px; border-radius: 8px; min-height: 45px; }
+        .sinc-info { font-size: 0.8em; color: #888; text-align: center; margin-bottom: 15px; }
     </style>
 </head>
 <body>
-
-<div class="card-controle">
-    <h3 class="titulo">CONTROLE ETEC</h3>
-    <p class="sinc-info" id="msgSinc">Conectando...</p>
-
-    <div style="border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
-        <label class="center-block text-center"><strong>SENHA NORMAL</strong></label>
-        <div class="contador-group">
-            <button class="btn btn-default btn-ajuste" onclick="ajustar('normal', -1)">-</button>
-            <input type="number" id="inputNormal" class="form-control input-senha" value="1">
-            <button class="btn btn-default btn-ajuste" onclick="ajustar('normal', 1)">+</button>
-        </div>
-        <button class="btn btn-primary btn-chamar" onclick="enviar('normal')">CHAMAR NORMAL</button>
-    </div>
-
-    <div>
-        <label class="center-block text-center"><strong>SENHA PREFERENCIAL</strong></label>
-        <div class="contador-group">
-            <button class="btn btn-default btn-ajuste" onclick="ajustar('pref', -1)">-</button>
-            <input type="number" id="inputPref" class="form-control input-senha" value="1">
-            <button class="btn btn-default btn-ajuste" onclick="ajustar('pref', 1)">+</button>
-        </div>
-        <button class="btn btn-danger btn-chamar" onclick="enviar('pref')">CHAMAR PREFERENCIAL</button>
-    </div>
-
-    <div id="status"></div>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<script>
-    // --- IMPORTANTE: TEM QUE SER IGUAL AO DO PAINEL ---
-    const ID_ESCOLA = "etec-pv-2026-oficial";
-
-    // Variáveis de controle
-    var cacheNormal = 0;
-    var cachePref = 0;
-    var editando = false;
-
-    // Sincronia Automática
-    setInterval(function() {
-        if(editando) return; // Não atualiza se você estiver mexendo
-
-        $.ajax({
-            url: "https://dweet.io/get/latest/dweet/for/" + ID_ESCOLA + "?r=" + Math.random(),
-            dataType: "json",
-            cache: false,
-            success: function(response) {
-                // SUCESSO NA CONEXÃO
-                $("#msgSinc").text("● Online e Sincronizado");
-                $("#msgSinc").css("color", "green");
-
-                // Se a chave existir, pegamos os dados. Se não (primeira vez), mantemos o que está.
-                if (response && response.with && response.with.length > 0) {
-                    var dados = response.with[0].content;
-                    var n = parseInt(dados.normal) || 0;
-                    var p = parseInt(dados.pref) || 0;
-
-                    // Atualiza cache
-                    if(n > cacheNormal) cacheNormal = n;
-                    if(p > cachePref) cachePref = p;
-
-                    // O input mostra o PRÓXIMO (Cache + 1)
-                    if(!document.activeElement.id.includes("input")) {
-                        $("#inputNormal").val(cacheNormal + 1);
-                        $("#inputPref").val(cachePref + 1);
-                    }
-                }
-            },
-            error: function(xhr) {
-                // Se der 404, significa que a chave é nova, não é erro de internet!
-                if(xhr.status === 404) {
-                     $("#msgSinc").text("● Sistema Iniciado (Novo)");
-                     $("#msgSinc").css("color", "blue");
-                } else {
-                     $("#msgSinc").text("○ Sem conexão (Tentando...)");
-                     $("#msgSinc").css("color", "red");
-                }
-            }
-        });
-    }, 2000);
-
-    // Botões + e -
-    function ajustar(tipo, delta) {
-        editando = true;
-        let id = (tipo === 'normal') ? "#inputNormal" : "#inputPref";
-        let valor = parseInt($(id).val()) || 1;
-        let novo = valor + delta;
-        if (novo < 1) novo = 1;
-        $(id).val(novo);
-        
-        // Volta a sincronizar depois de 3s
-        setTimeout(() => { editando = false; }, 3000);
-    }
-
-    // Enviar para Nuvem
-    function enviar(tipoClicado) {
-        let valNormal = parseInt($("#inputNormal").val());
-        let valPref = parseInt($("#inputPref").val());
-        
-        let msg = (tipoClicado === 'normal') ? valNormal : "P" + valPref;
-        
-        $("#status").text("Enviando " + msg + "...");
-        $("#status").css("background-color", "#e3f2fd");
-        $(".btn-chamar").prop("disabled", true);
-
-        // Usamos POST para garantir envio
-        $.ajax({
-            url: "https://dweet.io/dweet/for/" + ID_ESCOLA,
-            method: "POST",
-            data: {
-                "normal": (tipoClicado === 'normal') ? valNormal : (valNormal - 1),
-                "pref": (tipoClicado === 'pref') ? valPref : (valPref - 1)
-            },
-            success: function() {
-                $("#status").text("CHAMADO: " + msg);
-                $("#status").css("background-color", "#d4edda");
-                
-                // Atualiza localmente para o próximo imediatamente
-                if(tipoClicado === 'normal') {
-                    cacheNormal = valNormal;
-                    $("#inputNormal").val(valNormal + 1);
-                } else {
-                    cachePref = valPref;
-                    $("#inputPref").val(valPref + 1);
-                }
-
-                setTimeout(() => {
-                    $("#status").text("");
-                    $("#status").css("background-color", "transparent");
-                    $(".btn-chamar").prop("disabled", false);
-                }, 2000);
-            },
-            error: function() {
-                $("#status").text("Erro ao enviar! Verifique a internet.");
-                $("#status").css("background-color", "#f8d7da");
-                $(".btn-chamar").prop("disabled", false);
-            }
-        });
-    }
-</script>
-
-</body>
-</html>
