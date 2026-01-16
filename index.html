@@ -49,11 +49,11 @@
 
         /* Cores de Fundo Sólidas e Letras Brancas */
         .card-normal { 
-            background-color: #0056b3; /* Azul Forte */
+            background-color: #0056b3; /* Azul */
             color: #ffffff; 
         }
         .card-pref { 
-            background-color: #d32f2f; /* Vermelho Forte */
+            background-color: #d32f2f; /* Vermelho */
             color: #ffffff; 
         }
 
@@ -67,23 +67,36 @@
         }
 
         .senha-numero {
-            font-size: 13em; /* Tamanho bem grande para visibilidade */
+            font-size: 13em;
             font-weight: 900;
             line-height: 1;
             margin: 10px 0;
             text-shadow: 5px 5px 15px rgba(0,0,0,0.5);
         }
 
-        /* Rodapé */
+        /* Rodapé de Instrução */
         .footer {
             position: absolute;
-            bottom: 20px;
+            bottom: 40px;
             width: 100%;
             text-align: center;
             font-size: 1.3em;
             color: #444;
             font-weight: bold;
             text-transform: uppercase;
+        }
+
+        /* Indicador de Sincronização (Debug) */
+        #debug-info {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.85em;
+            color: #888;
+            font-family: 'Courier New', Courier, monospace;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 2px 8px;
+            border-radius: 5px;
         }
     </style>
 
@@ -95,11 +108,11 @@
     <div class="header-painel">
         <div class="row">
             <div class="col-xs-2">
-                <img src="imagens/Etecpv.png" class="etec-logo" alt="Logo">
+                <img src="imagens/uespi.png" class="etec-logo" alt="Logo">
             </div>
             <div class="col-xs-10" style="text-align: right;">
                 <span class="titulo-escola">ETEC PRESIDENTE VARGAS</span><br>
-                <span class="subtitulo-escola">MATRÍCULA 1/2026</span>
+                <span class="subtitulo-escola">MATRÍCULA SECRETARIA 2025</span>
             </div>
         </div>
     </div>
@@ -107,25 +120,4 @@
     <div class="container-fluid area-senhas">
         <div class="row">
             
-            <div class="col-xs-6">
-                <div class="card-senha card-normal">
-                    <div class="label-setor">NORMAL</div>
-                    <div id="senhaNormalNumero" class="senha-numero">0000</div>
-                </div>
-            </div>
-
-            <div class="col-xs-6">
-                <div class="card-senha card-pref">
-                    <div class="label-setor">PREFERENCIAL</div>
-                    <div id="senhaPrefNumero" class="senha-numero">P000</div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-<div class="footer">Aguarde sua senha ser chamada no painel</div>
-    <audio id="audioChamada" src="audio/chamada.wav" preload="auto"></audio>
-</body>
-</html>
-
-
+            <div class
